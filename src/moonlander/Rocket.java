@@ -40,12 +40,24 @@ public class Rocket {
 
     }
 
-    public void move() {
-        if(direction == 'R'){
+    public void moveDown() {
             headPosition[0]+= 5;
+
+        for (int i = 1; i < length; i++){
+            yCoordinates[i] = headPosition[0] + i * 5;
+        }
+
+        for (int x =0; x < width; x++){
+            xCoordinates[x] = headPosition[1] + x * 5;
+        }
+
+        yCoordinates[0] = headPosition[0];
+        xCoordinates[0] = headPosition[1];
+    }
+    public void moveHorizontal() {
+        if(direction == 'R'){
             headPosition[1]+= 5;
         } else if(direction == 'L'){
-            headPosition[0]+= 5;
             headPosition[1]-= 5;
         }
 
@@ -108,5 +120,9 @@ public class Rocket {
 
     public void resetFuel(){
         fuel = 700;
+    }
+
+    public char getDirection(){
+        return direction;
     }
 }

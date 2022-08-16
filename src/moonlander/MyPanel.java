@@ -13,7 +13,7 @@ public class MyPanel extends JPanel implements ActionListener {
     int size;
     int unitSize;
     int speed;
-
+    int horizontalSpeed;
     JLabel text;
     boolean gameOver = false;
     int[][]mountainCoordinates;
@@ -21,7 +21,9 @@ public class MyPanel extends JPanel implements ActionListener {
     int time = 0;
     Rocket rocket;
     Timer timer;
+    Timer horizontalTimer;
     int originalDelay = 100;
+    int horizontalDelay = 100;
     int realDelay = 100;
     boolean didIWin = false;
 
@@ -47,7 +49,7 @@ public class MyPanel extends JPanel implements ActionListener {
         timer = new Timer(realDelay, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                rocket.move();
+                rocket.moveDown();
                 if(originalDelay < realDelay){
                     resetDelay();
                     updateLabel();
@@ -63,18 +65,37 @@ public class MyPanel extends JPanel implements ActionListener {
         timer.setRepeats(true);
         timer.setInitialDelay(100);
         timer.start();
+
+        horizontalTimer = new Timer(horizontalDelay, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                rocket.moveHorizontal();
+
+                checkLanded();
+                if(!didIWin && !gameOver){
+                    checkCollision();
+
+                }
+                repaint();
+            }
+        });
+        horizontalTimer.setRepeats(true);
+        horizontalTimer.setInitialDelay(100);
+        horizontalTimer.start();
     }
 
     private void checkLanded() {
-        if((rocket.yCoordinates[rocket.yCoordinates.length - 1] == 520 && rocket.xCoordinates[0] > 220 && rocket.xCoordinates[0] < 430 - 15) && speed <= 20){
+        if((rocket.yCoordinates[rocket.yCoordinates.length - 1] == 520 && rocket.xCoordinates[0] > 220 && rocket.xCoordinates[0] < 430 - 15) && speed <= 20 && horizontalSpeed <= 20){
             timer.stop();
+            horizontalTimer.stop();
             didIWin = true;
             repaint();
             text.setText("You Landed!");
             rocket.removeTail();
 
-        } else if ((rocket.yCoordinates[rocket.yCoordinates.length - 1] == 520 && rocket.xCoordinates[0] > 220 && rocket.xCoordinates[0] < 430 - 15) && speed > 20){
+        } else if ((rocket.yCoordinates[rocket.yCoordinates.length - 1] == 520 && rocket.xCoordinates[0] > 220 && rocket.xCoordinates[0] < 430 - 15) && speed > 20 || horizontalSpeed > 20){
             timer.stop();
+            horizontalTimer.stop();
             text.setText("You went too fast! You Lost");
             gameOver = true;
             repaint();
@@ -99,6 +120,7 @@ public class MyPanel extends JPanel implements ActionListener {
                 for(int y = 0; y < rocket.xCoordinates.length; y++){
                     if ( mountainCoordinates[i][0] == rocket.xCoordinates[y] && mountainCoordinates[i][1] == rocket.yCoordinates[x] ){
                         timer.stop();
+                        horizontalTimer.stop();
                         text.setText("You Lost!");
                         gameOver = true;
                         rocket.removeTail();
@@ -191,9 +213,16 @@ public class MyPanel extends JPanel implements ActionListener {
                 case KeyEvent.VK_RIGHT:
                     if(!didIWin && !gameOver){
                         if(rocket.getFuel()>0){
-                            rocket.changeDirection('R');
+                            //rocket.changeDirection('R');
+                            if (rocket.getDirection() == 'R' && horizontalDelay > 100) {
+                                horizontalDelay -= 10;
+                            } else if (rocket.getDirection() != 'R' && horizontalDelay < 500){
+                                horizontalDelay += 10;
+                            }
+                            horizontalTimer.setDelay(horizontalDelay);
                             rocket.paintTail('R');
                             rocket.consumeFuel();
+                            checkChangeOfDirection();
                             updateLabel();
                         }
                     }
@@ -202,9 +231,16 @@ public class MyPanel extends JPanel implements ActionListener {
                 case KeyEvent.VK_LEFT:
                     if(!didIWin && !gameOver) {
                         if(rocket.getFuel()>0) {
-                            rocket.changeDirection('L');
+                            if (rocket.getDirection() == 'L' && horizontalDelay > 100) {
+                                horizontalDelay -= 10;
+                            } else if (rocket.getDirection() != 'L' && horizontalDelay < 500){
+                                horizontalDelay += 10;
+                            }
+                           // rocket.changeDirection('L');
+                            horizontalTimer.setDelay(horizontalDelay);
                             rocket.paintTail('L');
                             rocket.consumeFuel();
+                            checkChangeOfDirection();
                             updateLabel();
                         }
                     }
@@ -237,9 +273,24 @@ public class MyPanel extends JPanel implements ActionListener {
         }
     }
 
+    private void checkChangeOfDirection() {
+        if(horizontalDelay >= 490){
+            if(rocket.getDirection() == 'R'){
+                rocket.changeDirection('L');
+                horizontalDelay -= 10;
+            } else {
+                rocket.changeDirection('R');
+                horizontalDelay -= 10;
+            }
+
+            horizontalTimer.setDelay(horizontalDelay);
+        }
+    }
+
     private void updateLabel() {
         speed = 50 - realDelay/10;
-        text.setText( "Speed : " + speed + ";   Fuel : " + rocket.getFuel() +  ";   Time : " + 0);
+        horizontalSpeed = 50 - horizontalDelay/10;
+        text.setText( "Speed : " + speed + ";   Horizontal Speed : " + horizontalSpeed + ";   Fuel : " + rocket.getFuel() +  ";   Time : " + 0);
     }
 
 
