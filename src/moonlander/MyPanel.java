@@ -22,6 +22,8 @@ public class MyPanel extends JPanel implements ActionListener {
     Rocket rocket;
     Timer timer;
     Timer horizontalTimer;
+    Timer clockTimer;
+    int clock = 0;
     int originalDelay = 100;
     int horizontalDelay = 100;
     int realDelay = 100;
@@ -82,20 +84,33 @@ public class MyPanel extends JPanel implements ActionListener {
         horizontalTimer.setRepeats(true);
         horizontalTimer.setInitialDelay(100);
         horizontalTimer.start();
+
+        clockTimer = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                clock++;
+                updateLabel();
+            }
+        });
+        clockTimer.setRepeats(true);
+        clockTimer.setInitialDelay(100);
+        clockTimer.start();
     }
 
     private void checkLanded() {
         if((rocket.yCoordinates[rocket.yCoordinates.length - 1] == 520 && rocket.xCoordinates[0] > 220 && rocket.xCoordinates[0] < 430 - 15) && speed <= 20 && horizontalSpeed <= 20){
             timer.stop();
             horizontalTimer.stop();
+            clockTimer.stop();
             didIWin = true;
             repaint();
             text.setText("You Landed!");
             rocket.removeTail();
 
-        } else if ((rocket.yCoordinates[rocket.yCoordinates.length - 1] == 520 && rocket.xCoordinates[0] > 220 && rocket.xCoordinates[0] < 430 - 15) && speed > 20 || horizontalSpeed > 20){
+        } else if ((rocket.yCoordinates[rocket.yCoordinates.length - 1] == 520 && rocket.xCoordinates[0] > 220 && rocket.xCoordinates[0] < 430 - 15) && (speed > 20 || horizontalSpeed > 20)){
             timer.stop();
             horizontalTimer.stop();
+            clockTimer.stop();
             text.setText("You went too fast! You Lost");
             gameOver = true;
             repaint();
@@ -121,6 +136,7 @@ public class MyPanel extends JPanel implements ActionListener {
                     if ( mountainCoordinates[i][0] == rocket.xCoordinates[y] && mountainCoordinates[i][1] == rocket.yCoordinates[x] ){
                         timer.stop();
                         horizontalTimer.stop();
+                        clockTimer.stop();
                         text.setText("You Lost!");
                         gameOver = true;
                         rocket.removeTail();
@@ -263,7 +279,8 @@ public class MyPanel extends JPanel implements ActionListener {
                             rocket = new Rocket(unitSize);
                             startGame();
                             rocket.resetFuel();
-                            text.setText("Speed : " + 0 + ";   Fuel : " + rocket.getFuel() +  ";   Time : " + 0);
+                            clock = 0;
+                            text.setText("Speed : " + 0 + ";   Fuel : " + rocket.getFuel() +  ";   Time : " + clock);
                             gameOver = false;
                             didIWin = false;
                         }
@@ -290,7 +307,7 @@ public class MyPanel extends JPanel implements ActionListener {
     private void updateLabel() {
         speed = 50 - realDelay/10;
         horizontalSpeed = 50 - horizontalDelay/10;
-        text.setText( "Speed : " + speed + ";   Horizontal Speed : " + horizontalSpeed + ";   Fuel : " + rocket.getFuel() +  ";   Time : " + 0);
+        text.setText( "Speed : " + speed + ";   Horizontal Speed : " + horizontalSpeed + ";   Fuel : " + rocket.getFuel() +  ";   Time : " + clock);
     }
 
 
